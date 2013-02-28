@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd ">
+
+    <bean id="tm" class="org.springframework.batch.support.transaction.ResourcelessTransactionManager"/>
+
+    <bean id="jobRepository" class="org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean">
+        <property name="transactionManager" ref="tm"/>
+    </bean>
+
+    <bean id="jobLauncher" class="org.springframework.batch.core.launch.support.SimpleJobLauncher">
+        <property name="jobRepository" ref="jobRepository"/>
+    </bean>
+
+    <bean id="helloJob" class="org.springframework.batch.core.job.SimpleJob">
+        <property name="jobRepository" ref="jobRepository"/>
+        <property name="steps">
+            <list>
+                <ref bean="helloStep"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="helloStep" class="org.springframework.batch.core.step.item.SimpleStepFactoryBean">
+        <property name="transactionManager" ref="tm"/>
+        <property name="jobRepository" ref="jobRepository"/>
+        <property name="itemReader" ref="reader"/>
+        <property name="itemWriter" ref="transformingWriter"/>
+    </bean>
+
+    <bean id="reader" class="org.springframework.batch.item.support.ListItemReader">
+        <constructor-arg>
+            <list>
+                <value>Hello</value>
+                <value>Spring</value>
+                <value>Batch</value>
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <bean id="writer" class="com.ribomation.tutorial.LogWriter"/>
+
+    <bean id="transformingWriter" class="org.springframework.batch.item.transform.ItemTransformerItemWriter">
+        <property name="itemTransformer">
+            <bean class="com.ribomation.tutorial.UpperCaseTransformer"/>
+        </property>
+        <property name="delegate" ref="writer"/>
+    </bean>
+
+</beans>
